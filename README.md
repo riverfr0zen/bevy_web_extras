@@ -1,6 +1,8 @@
 # What it is
 
-Bevy makes it quite easy to target a web release and support is growing steadily. However, as a newcomer whose work is going to be pretty web-focused I needed some additional baseline functionality handy for my projects.
+Bevy makes it quite easy to target a web release and support is growing steadily. However, as my work is going to be pretty web-focused I needed some additional baseline functionality for my projects.
+
+Since implementing these took some digging and discussion for me as a newcomer, I figured others may benefit by releasing this repo.
 
 Please note that I am new to both Rust and Bevy so any feedback (and pull requests!) will be appreciated. 
 
@@ -27,7 +29,7 @@ use bevy_web_extras::prelude::*;
 pub fn main() {
     // ... Create an app with "baseline web functionality" ...
     let winsetup = WindowSetup {
-        title: String::from("path changer example"),
+        title: String::from("my example"),
         canvas: String::from("#window-matching-canvas"),
         /// Multiplier of browser window width that canvas size should match. Defaults to 1.0 (100%).
         canvas_match_w: 1.0,
