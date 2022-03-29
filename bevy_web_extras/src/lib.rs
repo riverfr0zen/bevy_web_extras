@@ -39,7 +39,18 @@ mod tests {
 #[derive(Clone, Debug)]
 pub struct WindowSetup {
     pub title: String,
+    /// The id of the canvas element we are targetting
     pub canvas: String,
+    /// Multiplier of window width that canvas size should match. Defaults to 1.0 (100%).
+    pub canvas_match_w: f32,
+    /// Multiplier of window height that canvas size should match. Defaults to 1.0 (100%).
+    pub canvas_match_h: f32,
+    /// The clear color that the HTML document background will be changed to when the app loads.
+    /// This is useful for matching the clear color of the app.
+    /// @TODO: Should make switching to this color configurable (and off by default).
+    /// Currently the switch is forced even if the user doesn't choose a custom color here.
+    /// A related setting would be whether the switch only occurs in `setup_browser`, or
+    /// in `handle_browser_resize`
     pub clear_color: Color,
     pub width: f32,
     pub height: f32,
@@ -56,6 +67,8 @@ impl Default for WindowSetup {
             Self {
                 title: String::from("Untitled Sketch"),
                 canvas: String::from("#window-matching-canvas"),
+                canvas_match_w: 1.0,
+                canvas_match_h: 1.0,
                 clear_color: CLEAR_COLOR,
                 width: WINDOW_WIDTH_DEV,
                 height: WINDOW_HEIGHT_DEV,
@@ -68,6 +81,8 @@ impl Default for WindowSetup {
             Self {
                 title: String::from("Untitled Sketch"),
                 canvas: String::from("#window-matching-canvas"),
+                canvas_match_w: 1.0,
+                canvas_match_h: 1.0,
                 clear_color: CLEAR_COLOR,
                 width: WINDOW_WIDTH,
                 height: WINDOW_HEIGHT,
@@ -129,8 +144,8 @@ fn handle_browser_resize(
     let window = windows.get_primary_mut().unwrap();
     let wasm_window = web_sys::window().unwrap();
     let (mut target_width, mut target_height) = (
-        wasm_window.inner_width().unwrap().as_f64().unwrap() as f32,
-        wasm_window.inner_height().unwrap().as_f64().unwrap() as f32,
+        wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_w,
+        wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_h,
     );
 
     // debug!("wasm_window.device_pixel_ratio: {}", wasm_window.device_pixel_ratio());
@@ -161,12 +176,14 @@ fn handle_browser_resize(
         }
     }
 
-    // Have to apply floor() to window.width() since it seems set_resolution does not
-    // always set the same floating point resolution, and so this was triggering on every
-    // step.
+    // Because there can be variations in floating point values between window dimensions
+    // and target dimensions, we are using floor here to detect changes. Otherwise, this was
+    // triggering on every step.
     //
     // if window.width() != target_width || window.height() != target_height {
-    if window.width().floor() != target_width || window.height().floor() != target_height {
+    if window.width().floor() != target_width.floor()
+        || window.height().floor() != target_height.floor()
+    {
         // debug!(
         //     "{:?} {:?}, {:?} {:?}",
         //     window.width(),
