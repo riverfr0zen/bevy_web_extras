@@ -1,6 +1,6 @@
 # Intro/description/caveats
 
-(TODO)
+Provides some convenience functionality to make working with Bevy web targets easier.
 
 
 # Features:
