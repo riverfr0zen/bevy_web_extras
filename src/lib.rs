@@ -63,7 +63,7 @@ impl Default for WindowSetup {
     fn default() -> Self {
         if cfg!(debug_assertions) {
             Self {
-                title: String::from("Untitled Sketch"),
+                title: String::from("Untitled Bevy web app"),
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
@@ -78,7 +78,7 @@ impl Default for WindowSetup {
             }
         } else {
             Self {
-                title: String::from("Untitled Sketch"),
+                title: String::from("Untitled Bevy web app"),
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
@@ -134,20 +134,12 @@ fn setup_browser(
     if window_created_reader.iter().next().is_some() {
         let wasm_window = web_sys::window().unwrap();
 
+        // Set title
+        wasm_window.document().unwrap().set_title(&winsetup.title);
+
         // Match html body background to clear color
         if winsetup.match_clear_color {
             match_clear_color(&wasm_window, app_clear_color.0);
-            // let body = wasm_window.document().unwrap().body().unwrap();
-            // let _ = body.style().set_property(
-            //     "background-color",
-            //     format!(
-            //         "rgb({}, {}, {})",
-            //         app_clear_color.0.r() * 255.0,
-            //         app_clear_color.0.g() * 255.0,
-            //         app_clear_color.0.b() * 255.0
-            //     )
-            //     .as_str(),
-            // );
         }
         handle_browser_resize(
             app_clear_color,

@@ -1,6 +1,8 @@
-# Intro/description/caveats
+# What it is
 
-Provides some convenience functionality to make working with Bevy web targets easier.
+Bevy makes it quite easy to target a web release and support is growing steadily. However, as a newcomer whose work is going to be pretty web-focused I needed some additional baseline functionality handy for my projects.
+
+Please note that I am new to both Rust and Bevy so any feedback (and pull requests!) will be appreciated. 
 
 
 # Features:
@@ -12,7 +14,35 @@ Provides some convenience functionality to make working with Bevy web targets ea
 * [x] Match browser document background color to the app's ClearColor resource on app startup
 * [x] Option to match ClearColor as above **on every resize check** instead of just on setup
 * [x] Specify the target canvas element id (defaults to "window-matching-canvas") 
+* [x] Convenience `web_app()` function that wires up functionality in this crate into a "baseline web" app
 
+
+# Synopsis
+
+```rust
+
+use bevy::prelude::*;
+use bevy_web_extras::prelude::*;
+
+pub fn main() {
+    // ... Create an app with "baseline web functionality" ...
+    let winsetup = WindowSetup {
+        title: String::from("path changer example"),
+        canvas: String::from("#window-matching-canvas"),
+        canvas_match_w: 1.0,
+        canvas_match_h: 1.0,
+        match_clear_color: false,
+        // match_clear_color_always: false,
+        ..Default::default()
+    };
+    let mut app = web_app(winsetup);
+
+    app.insert_resource(ClearColor(CHANGER_CLEAR_CLR))
+        .add_plugin(ShapePlugin)
+        // ... BUILD APP AS USUAL ...
+        .run();
+}
+```
 
 
 # Running the examples
