@@ -29,9 +29,13 @@ pub fn main() {
     let winsetup = WindowSetup {
         title: String::from("path changer example"),
         canvas: String::from("#window-matching-canvas"),
+        /// Multiplier of browser window width that canvas size should match. Defaults to 1.0 (100%).
         canvas_match_w: 1.0,
+        /// Multiplier of browser window height that canvas size should match. Defaults to 1.0 (100%).
         canvas_match_h: 1.0,
+        /// Whether the HTML document background should match the app's ClearColor resource on app startup
         match_clear_color: false,
+        // Same as `match_clear_color`, but match on *every resize check*
         // match_clear_color_always: false,
         ..Default::default()
     };
