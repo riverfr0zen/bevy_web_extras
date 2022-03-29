@@ -176,7 +176,6 @@ fn handle_browser_resize(
     // Match html body background to clear color on every resize
     if winsetup.match_clear_color_always {
         match_clear_color(&wasm_window, app_clear_color.0);
-        info!("matched color!")
     }
 
 
