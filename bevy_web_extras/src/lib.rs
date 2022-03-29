@@ -11,6 +11,8 @@ use bevy::render::renderer::RenderDevice;
 use bevy::utils::tracing::Level;
 #[cfg(target_arch = "wasm32")]
 use bevy::window::WindowCreated;
+#[cfg(target_arch = "wasm32")]
+use web_sys::Window as WebsysWindow;
 
 pub mod prelude;
 
@@ -21,7 +23,6 @@ const WINDOW_HEIGHT: f32 = 600.0;
 // These *_DEV settings are based on nothing but my current display
 const WINDOW_WIDTH_DEV: f32 = 2400.0;
 const WINDOW_HEIGHT_DEV: f32 = 2000.0;
-const CLEAR_COLOR: Color = Color::GRAY;
 #[cfg(target_arch = "wasm32")]
 const RESIZE_CHECK_STEP: f64 = 1.0;
 
@@ -45,13 +46,10 @@ pub struct WindowSetup {
     pub canvas_match_w: f32,
     /// Multiplier of window height that canvas size should match. Defaults to 1.0 (100%).
     pub canvas_match_h: f32,
-    /// The clear color that the HTML document background will be changed to when the app loads.
-    /// This is useful for matching the clear color of the app.
-    /// @TODO: Should make switching to this color configurable (and off by default).
-    /// Currently the switch is forced even if the user doesn't choose a custom color here.
-    /// A related setting would be whether the switch only occurs in `setup_browser`, or
-    /// in `handle_browser_resize`
-    pub clear_color: Color,
+    /// Whether the HTML document background should match the app's ClearColor resource on app startup
+    pub match_clear_color: bool,
+    // Same as `match_clear_color`, but match on *every resize check*
+    pub match_clear_color_always: bool,
     pub width: f32,
     pub height: f32,
     pub max_x: f32,
@@ -69,7 +67,8 @@ impl Default for WindowSetup {
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
-                clear_color: CLEAR_COLOR,
+                match_clear_color: false,
+                match_clear_color_always: false,
                 width: WINDOW_WIDTH_DEV,
                 height: WINDOW_HEIGHT_DEV,
                 max_x: WINDOW_WIDTH_DEV / 2.0,
@@ -83,7 +82,8 @@ impl Default for WindowSetup {
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
-                clear_color: CLEAR_COLOR,
+                match_clear_color: false,
+                match_clear_color_always: false,
                 width: WINDOW_WIDTH,
                 height: WINDOW_HEIGHT,
                 max_x: WINDOW_WIDTH / 2.0,
@@ -100,13 +100,31 @@ impl Default for WindowSetup {
 pub struct BrowserResized;
 
 
-// Based on https://github.com/bevyengine/bevy/issues/175
-//
-// Call the handle_browser_resize system once at startup (if window is created)
-// to cover for the short period before handle_browser_resize kicks in
-// (since that system will likely be set to a FixedTimeStep)
+/// Match html body background to clear color
+#[cfg(target_arch = "wasm32")]
+fn match_clear_color(wasm_window: &WebsysWindow, app_clear_color: Color) {
+    let body = wasm_window.document().unwrap().body().unwrap();
+    let _ = body.style().set_property(
+        "background-color",
+        format!(
+            "rgb({}, {}, {})",
+            app_clear_color.r() * 255.0,
+            app_clear_color.g() * 255.0,
+            app_clear_color.b() * 255.0
+        )
+        .as_str(),
+    );
+}
+
+
+/// Based on https://github.com/bevyengine/bevy/issues/175
+///
+/// Call the handle_browser_resize system once at startup (if window is created)
+/// to cover for the short period before handle_browser_resize kicks in
+/// (since that system will likely be set to a FixedTimeStep)
 #[cfg(target_arch = "wasm32")]
 fn setup_browser(
+    app_clear_color: Res<ClearColor>,
     winsetup: ResMut<WindowSetup>,
     windows: ResMut<Windows>,
     resize_event_writer: EventWriter<BrowserResized>,
@@ -115,27 +133,38 @@ fn setup_browser(
 ) {
     if window_created_reader.iter().next().is_some() {
         let wasm_window = web_sys::window().unwrap();
-        // Match background to clear color
-        let body = wasm_window.document().unwrap().body().unwrap();
-        let _ = body.style().set_property(
-            "background-color",
-            format!(
-                "rgb({}, {}, {})",
-                winsetup.clear_color.r() * 255.0,
-                winsetup.clear_color.g() * 255.0,
-                winsetup.clear_color.b() * 255.0
-            )
-            .as_str(),
+
+        // Match html body background to clear color
+        if winsetup.match_clear_color {
+            match_clear_color(&wasm_window, app_clear_color.0);
+            // let body = wasm_window.document().unwrap().body().unwrap();
+            // let _ = body.style().set_property(
+            //     "background-color",
+            //     format!(
+            //         "rgb({}, {}, {})",
+            //         app_clear_color.0.r() * 255.0,
+            //         app_clear_color.0.g() * 255.0,
+            //         app_clear_color.0.b() * 255.0
+            //     )
+            //     .as_str(),
+            // );
+        }
+        handle_browser_resize(
+            app_clear_color,
+            render_device,
+            winsetup,
+            windows,
+            resize_event_writer,
         );
-        handle_browser_resize(render_device, winsetup, windows, resize_event_writer);
     }
 }
 
 
-// Based on this Discord conversation: https://i.imgur.com/osfA8PH.png AND
-// https://github.com/mrk-its/bevy-robbo/blob/master/src/main.rs
+/// Based on this Discord conversation: https://i.imgur.com/osfA8PH.png AND
+/// https://github.com/mrk-its/bevy-robbo/blob/master/src/main.rs
 #[cfg(target_arch = "wasm32")]
 fn handle_browser_resize(
+    app_clear_color: Res<ClearColor>,
     render_device: Res<RenderDevice>,
     mut winsetup: ResMut<WindowSetup>,
     mut windows: ResMut<Windows>,
@@ -143,6 +172,14 @@ fn handle_browser_resize(
 ) {
     let window = windows.get_primary_mut().unwrap();
     let wasm_window = web_sys::window().unwrap();
+
+    // Match html body background to clear color on every resize
+    if winsetup.match_clear_color_always {
+        match_clear_color(&wasm_window, app_clear_color.0);
+        info!("matched color!")
+    }
+
+
     let (mut target_width, mut target_height) = (
         wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_w,
         wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_h,
@@ -213,7 +250,6 @@ pub fn web_app(winsetup: WindowSetup) -> App {
         canvas: Some(winsetup.canvas.to_string()),
         ..Default::default()
     })
-    .insert_resource(ClearColor(winsetup.clear_color))
     .insert_resource(Msaa { samples: 4 })
     .insert_resource(winsetup);
 
