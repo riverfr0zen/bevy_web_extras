@@ -39,6 +39,7 @@ mod tests {
 #[derive(Clone, Debug)]
 pub struct WindowSetup {
     pub title: String,
+    pub canvas: String,
     pub clear_color: Color,
     pub width: f32,
     pub height: f32,
@@ -54,6 +55,7 @@ impl Default for WindowSetup {
         if cfg!(debug_assertions) {
             Self {
                 title: String::from("Untitled Sketch"),
+                canvas: String::from("#window-matching-canvas"),
                 clear_color: CLEAR_COLOR,
                 width: WINDOW_WIDTH_DEV,
                 height: WINDOW_HEIGHT_DEV,
@@ -65,6 +67,7 @@ impl Default for WindowSetup {
         } else {
             Self {
                 title: String::from("Untitled Sketch"),
+                canvas: String::from("#window-matching-canvas"),
                 clear_color: CLEAR_COLOR,
                 width: WINDOW_WIDTH,
                 height: WINDOW_HEIGHT,
@@ -190,7 +193,7 @@ pub fn web_app(winsetup: WindowSetup) -> App {
         height: winsetup.height,
         position: Some(Vec2::new(winsetup.position_x, winsetup.position_y)),
         #[cfg(target_arch = "wasm32")]
-        canvas: Some("#window-matching-canvas".to_string()),
+        canvas: Some(winsetup.canvas.to_string()),
         ..Default::default()
     })
     .insert_resource(ClearColor(winsetup.clear_color))
