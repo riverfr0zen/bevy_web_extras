@@ -1,10 +1,11 @@
 # What it is
 
-Bevy makes it quite easy to target a web release and support is growing steadily. However, as my work is going to be pretty web-focused I needed some additional baseline functionality for my projects.
+I was missing some convenience functionality around web/wasm targets in [Bevy][https://bevyengine.org] so I put it in this crate, since some of this stuff took some time to dig up (especially to Bevy newcomers like myself). See the [features](#features) below for what is provided.
 
-Since implementing these took some digging and discussion for me as a newcomer, I figured others may benefit by releasing this repo.
+## Caveats/disclaimers/etc
 
-Please note that I am new to both Rust and Bevy so any feedback (and pull requests!) will be appreciated. 
+* This is not an official Bevy crate 
+* Please note that I am new to both Rust and Bevy so there is probably lots of room for improvement here. Any feedback (and pull requests!) will be appreciated. 
 
 
 # Features:
