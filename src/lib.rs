@@ -1,14 +1,8 @@
 #[cfg(target_arch = "wasm32")]
 use bevy::core::FixedTimestep;
-#[cfg(feature = "framestats")]
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-#[cfg(feature = "debuglog")]
-use bevy::log::LogSettings;
 use bevy::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use bevy::render::renderer::RenderDevice;
-#[cfg(feature = "debuglog")]
-use bevy::utils::tracing::Level;
 #[cfg(target_arch = "wasm32")]
 use bevy::window::WindowCreated;
 #[cfg(target_arch = "wasm32")]
@@ -251,23 +245,7 @@ pub fn web_app(webcfg: WebExtrasCfg) -> App {
         canvas: Some(webcfg.canvas.to_string()),
         ..Default::default()
     })
-    .insert_resource(Msaa { samples: 4 })
     .insert_resource(webcfg);
-
-    #[cfg(feature = "debuglog")]
-    app.insert_resource(LogSettings {
-        level: Level::DEBUG,
-        filter: "wgpu=error,bevy_render=info".to_string(),
-    });
-    app.add_plugins(DefaultPlugins);
-    debug!("debug log level enabled");
-    info!("info log level enabled");
-
-    // Example of "feature-flipping".
-    // See https://doc.rust-lang.org/cargo/reference/features.html
-    #[cfg(feature = "framestats")]
-    app.add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default());
 
     #[cfg(target_arch = "wasm32")]
     app.add_event::<BrowserResized>();
