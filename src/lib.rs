@@ -37,8 +37,10 @@ mod tests {
 }
 
 
+/// This Resource is currently a little amorphous as it contains both config and some state details.
+/// Probably want to separate this out later.
 #[derive(Clone, Debug)]
-pub struct WindowSetup {
+pub struct WebExtrasCfg {
     pub title: String,
     /// The id of the canvas element we are targetting
     pub canvas: String,
@@ -50,16 +52,24 @@ pub struct WindowSetup {
     pub match_clear_color: bool,
     // Same as `match_clear_color`, but match on *every resize check*
     pub match_clear_color_always: bool,
+    /// An optional initial width of the canvas. Set to WINDOW_WIDTH or WINDOW_WIDTH_DEV by default,
+    /// depending on debug_assertions
     pub width: f32,
+    /// Like `width` above
     pub height: f32,
+    /// Convenience access to max_x
     pub max_x: f32,
+    /// Convenience access to max_y
     pub max_y: f32,
+    /// This is not actually related to web, but sets the window position of the native app
+    /// against the TARGET_RES_WIDTH, which was useful for me while debugging. Will probably
+    /// take this out later.
     pub position_x: f32,
     pub position_y: f32,
 }
 
 
-impl Default for WindowSetup {
+impl Default for WebExtrasCfg {
     fn default() -> Self {
         if cfg!(debug_assertions) {
             Self {
@@ -125,7 +135,7 @@ fn match_clear_color(wasm_window: &WebsysWindow, app_clear_color: Color) {
 #[cfg(target_arch = "wasm32")]
 fn setup_browser(
     app_clear_color: Res<ClearColor>,
-    winsetup: ResMut<WindowSetup>,
+    webcfg: ResMut<WebExtrasCfg>,
     windows: ResMut<Windows>,
     resize_event_writer: EventWriter<BrowserResized>,
     render_device: Res<RenderDevice>,
@@ -135,16 +145,16 @@ fn setup_browser(
         let wasm_window = web_sys::window().unwrap();
 
         // Set title
-        wasm_window.document().unwrap().set_title(&winsetup.title);
+        wasm_window.document().unwrap().set_title(&webcfg.title);
 
         // Match html body background to clear color
-        if winsetup.match_clear_color {
+        if webcfg.match_clear_color {
             match_clear_color(&wasm_window, app_clear_color.0);
         }
         handle_browser_resize(
             app_clear_color,
             render_device,
-            winsetup,
+            webcfg,
             windows,
             resize_event_writer,
         );
@@ -158,7 +168,7 @@ fn setup_browser(
 fn handle_browser_resize(
     app_clear_color: Res<ClearColor>,
     render_device: Res<RenderDevice>,
-    mut winsetup: ResMut<WindowSetup>,
+    mut webcfg: ResMut<WebExtrasCfg>,
     mut windows: ResMut<Windows>,
     mut resize_event_writer: EventWriter<BrowserResized>,
 ) {
@@ -166,14 +176,14 @@ fn handle_browser_resize(
     let wasm_window = web_sys::window().unwrap();
 
     // Match html body background to clear color on every resize
-    if winsetup.match_clear_color_always {
+    if webcfg.match_clear_color_always {
         match_clear_color(&wasm_window, app_clear_color.0);
     }
 
 
     let (mut target_width, mut target_height) = (
-        wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_w,
-        wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * winsetup.canvas_match_h,
+        wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_w,
+        wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_h,
     );
 
     // debug!("wasm_window.device_pixel_ratio: {}", wasm_window.device_pixel_ratio());
@@ -220,29 +230,29 @@ fn handle_browser_resize(
         //     target_height,
         // );
         window.set_resolution(target_width, target_height);
-        winsetup.width = target_width;
-        winsetup.height = target_height;
-        winsetup.max_x = winsetup.width / 2.0;
-        winsetup.max_y = winsetup.height / 2.0;
+        webcfg.width = target_width;
+        webcfg.height = target_height;
+        webcfg.max_x = webcfg.width / 2.0;
+        webcfg.max_y = webcfg.height / 2.0;
         resize_event_writer.send(BrowserResized)
     }
 }
 
 
 /// Create a web-oriented Bevy app that matches canvas to window size
-pub fn web_app(winsetup: WindowSetup) -> App {
+pub fn web_app(webcfg: WebExtrasCfg) -> App {
     let mut app = App::new();
     app.insert_resource(WindowDescriptor {
-        title: winsetup.title.to_string(),
-        width: winsetup.width,
-        height: winsetup.height,
-        position: Some(Vec2::new(winsetup.position_x, winsetup.position_y)),
+        title: webcfg.title.to_string(),
+        width: webcfg.width,
+        height: webcfg.height,
+        position: Some(Vec2::new(webcfg.position_x, webcfg.position_y)),
         #[cfg(target_arch = "wasm32")]
-        canvas: Some(winsetup.canvas.to_string()),
+        canvas: Some(webcfg.canvas.to_string()),
         ..Default::default()
     })
     .insert_resource(Msaa { samples: 4 })
-    .insert_resource(winsetup);
+    .insert_resource(webcfg);
 
     #[cfg(feature = "debuglog")]
     app.insert_resource(LogSettings {

@@ -1,11 +1,11 @@
 # What it is
 
-I was missing some convenience functionality around web/wasm targets in [Bevy][https://bevyengine.org] so I put it in this crate, since some of this stuff took some time to dig up (especially to Bevy newcomers like myself). See the [features](#features) below for what is provided.
+I was missing some convenience functionality around web/wasm targets in [Bevy](https://bevyengine.org) so I put it in this repo (some of this took a little digging as a Bevy newcomer). See the [features](#features) below for what is provided.
 
 ## Caveats/disclaimers/etc
 
-* This is not an official Bevy crate 
-* Please note that I am new to both Rust and Bevy so there is probably lots of room for improvement here. Any feedback (and pull requests!) will be appreciated. 
+* This is not an official Bevy project/crate 
+* I am new to both Rust and Bevy so there is probably lots of room for improvement here. Any feedback (and pull requests!) will be appreciated. 
 
 
 # Features:
@@ -22,14 +22,16 @@ I was missing some convenience functionality around web/wasm targets in [Bevy][h
 
 # Synopsis
 
+Better examples will come soon, but the below should cover most things.
+
 ```rust
 
 use bevy::prelude::*;
 use bevy_web_extras::prelude::*;
 
 pub fn main() {
-    // ... Create an app with "baseline web functionality" ...
-    let winsetup = WindowSetup {
+    // ... Create an app with some baseline web functionality ...
+    let webcfg = WebExtrasCfg {
         title: String::from("my example"),
         canvas: String::from("#window-matching-canvas"),
         /// Multiplier of browser window width that canvas size should match. Defaults to 1.0 (100%).
@@ -42,9 +44,9 @@ pub fn main() {
         // match_clear_color_always: false,
         ..Default::default()
     };
-    let mut app = web_app(winsetup);
+    let mut app = web_app(webcfg);
 
-    app.insert_resource(ClearColor(CHANGER_CLEAR_CLR))
+    app.insert_resource(ClearColor(Color::SALMON))
         .add_plugin(ShapePlugin)
         // ... BUILD APP AS USUAL ...
         .run();

@@ -1,5 +1,5 @@
 #[doc(hidden)]
-pub use crate::{web_app, WindowSetup};
+pub use crate::{web_app, WebExtrasCfg};
 
 
 #[doc(hidden)]
