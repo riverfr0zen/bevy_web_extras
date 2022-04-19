@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Untitled</title>
+    <style>
+      body {
+        background-color: white;
+        margin: 0 !important; 
+        padding: 0 !important;
+        border: 0px;
+        overflow: hidden;
+      }
+      canvas {
+        background-color: white;
+      }
+
+      #content {
+        background-color: white;
+        /* Interestingly if these dimensions are specified in `px`, web-sys will report those instead of
+        the actual dimensions (e.g. specifying a height of 500px would likely not actually the result in 
+        an element of 500px height unless we used flexbox or something, but web-sys will still report 500px).
+        */
+        height: 500px;
+      }
+    </style>
+  </head>
+  <script type="module">
+    import init from './wasms/match_element.js';
+    init();
+  </script>
+
+  <body>
+    <div id="content">
+      <canvas id="window-matching-canvas"></canvas>
+    </div>
+  </body>
+</html>

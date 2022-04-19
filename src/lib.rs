@@ -42,6 +42,8 @@ pub struct WebExtrasCfg {
     pub canvas_match_w: f32,
     /// Multiplier of window height that canvas size should match. Defaults to 1.0 (100%).
     pub canvas_match_h: f32,
+    /// Alternatively match window dimensions to an element with this id
+    pub match_element: Option<String>,
     /// Whether the HTML document background should match the app's ClearColor resource on app startup
     pub match_clear_color: bool,
     // Same as `match_clear_color`, but match on *every resize check*
@@ -71,6 +73,7 @@ impl Default for WebExtrasCfg {
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
+                match_element: None,
                 match_clear_color: false,
                 match_clear_color_always: false,
                 width: WINDOW_WIDTH_DEV,
@@ -86,6 +89,7 @@ impl Default for WebExtrasCfg {
                 canvas: String::from("#window-matching-canvas"),
                 canvas_match_w: 1.0,
                 canvas_match_h: 1.0,
+                match_element: None,
                 match_clear_color: false,
                 match_clear_color_always: false,
                 width: WINDOW_WIDTH,
@@ -174,11 +178,24 @@ fn handle_browser_resize(
         match_clear_color(&wasm_window, app_clear_color.0);
     }
 
-
-    let (mut target_width, mut target_height) = (
-        wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_w,
-        wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_h,
-    );
+    let mut target_width: f32;
+    let mut target_height: f32;
+    if let Some(element_id) = &webcfg.match_element {
+        let el_dom_rect = wasm_window
+            .document()
+            .unwrap()
+            .get_element_by_id(element_id)
+            .unwrap()
+            .get_bounding_client_rect();
+        // @TODO: consider modifying dimensions by `webcfg.canvas_match_w` and `webcfg.canvas_match_w`
+        // as done below for matching whole window
+        (target_width, target_height) = (el_dom_rect.width() as f32, el_dom_rect.height() as f32);
+    } else {
+        (target_width, target_height) = (
+            wasm_window.inner_width().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_w,
+            wasm_window.inner_height().unwrap().as_f64().unwrap() as f32 * webcfg.canvas_match_h,
+        );
+    }
 
     // debug!("wasm_window.device_pixel_ratio: {}", wasm_window.device_pixel_ratio());
     // debug!("window.scale_factor: {}", window.scale_factor());
