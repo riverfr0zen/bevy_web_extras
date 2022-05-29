@@ -6,6 +6,7 @@ I was missing some convenience functionality around web/wasm targets in [Bevy](h
 
 * This is not an official Bevy project/crate 
 * I am new to both Rust and Bevy so there is probably lots of room for improvement here. Any feedback (and pull requests!) will be appreciated. 
+* Currently this crate only works for 2D cameras (`OrthographicCameraBundle::new_2d()`)
 
 
 # Changelog:
