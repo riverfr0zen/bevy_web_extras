@@ -50,7 +50,6 @@ pub fn main() {
     let mut app = web_app(webcfg);
 
     app.insert_resource(ClearColor(Color::SALMON))
-        .add_plugin(ShapePlugin)
         // ... BUILD APP AS USUAL ...
         .run();
 }
