@@ -14,9 +14,11 @@ const TARGET_RES_WIDTH: f32 = 3840.0;
 // const TARGET_RES_HEIGHT: f32 = 2160.0;
 const WINDOW_WIDTH: f32 = 800.0;
 const WINDOW_HEIGHT: f32 = 600.0;
-// These *_DEV settings are based on nothing but my current display
-const WINDOW_WIDTH_DEV: f32 = 2400.0;
-const WINDOW_HEIGHT_DEV: f32 = 2000.0;
+// These *_DEV settings are based on nothing but my current display & prefs
+// const WINDOW_WIDTH_DEV: f32 = 2400.0;
+// const WINDOW_HEIGHT_DEV: f32 = 2000.0;
+const WINDOW_WIDTH_DEV: f32 = 1400.0;
+const WINDOW_HEIGHT_DEV: f32 = 1200.0;
 #[cfg(target_arch = "wasm32")]
 const RESIZE_CHECK_STEP: f64 = 1.0;
 
@@ -80,7 +82,9 @@ impl Default for WebExtrasCfg {
                 height: WINDOW_HEIGHT_DEV,
                 max_x: WINDOW_WIDTH_DEV / 2.0,
                 max_y: WINDOW_HEIGHT_DEV / 2.0,
-                position_x: TARGET_RES_WIDTH - WINDOW_WIDTH_DEV,
+                // Align window to the right of screen
+                // position_x: TARGET_RES_WIDTH - WINDOW_WIDTH_DEV,
+                position_x: 0.0,
                 position_y: 0.0,
             }
         } else {
